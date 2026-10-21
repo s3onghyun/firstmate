@@ -1,0 +1,17 @@
+=== S13 note count after rejected attempts (expect 4: S1,S2,S4,S6)
+       4
+=== S13b wake rows (expect 4)
+4
+
+$ fm-inbox.sh drain --ack 1792585307-HrmH3y
+acked 1792585307-HrmH3y
+[exit 0]
+
+$ fm-inbox.sh receipts --all-handled
+keys: ['generated', 'handled', 'home', 'omitted', 'pending', 'replies', 'reply_cursor', 'schema']
+1792585307-HrmH3y ['/srv/logs/build.log', '/srv/logs/deploy.log']
+[exit 0]
+
+$ fm-inbox.sh announce --json 1792585307-HrmH3y
+{"schema":"fm-inbox-note.v1","outcome":"replay","id":"1792585307-HrmH3y","request_id":null,"saved":true,"announced":true,"acknowledged":false,"path":"/var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.3HzHm1/state/inbox/handled/1792585307-HrmH3y.note","attachments":["/srv/logs/build.log","/srv/logs/deploy.log"]}
+[exit 0]

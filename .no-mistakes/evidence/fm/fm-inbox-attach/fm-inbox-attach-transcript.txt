@@ -1,0 +1,140 @@
+=== S1 human note with two attachments (one missing, one real secret file)
+
+$ fm-inbox.sh note --attach /does/not/exist/report\ one.pdf --attach /var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.3HzHm1/secret-attachment.txt please\ look\ at\ the\ attached\ report 
+queued 1792585307-MI7RT2
+  please look at the attached report
+  firstmate will pick this up at its next check.
+  attachment /does/not/exist/report one.pdf
+  attachment /var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.3HzHm1/secret-attachment.txt
+[exit 0]
+=== S2 JSON receipt, request-id
+
+$ fm-inbox.sh note --request-id req-42 --attach /srv/logs/build.log --attach /srv/logs/deploy.log --json build\ failed\,\ see\ logs 
+{"schema":"fm-inbox-note.v1","outcome":"created","id":"1792585307-HrmH3y","request_id":"req-42","saved":true,"announced":true,"acknowledged":false,"path":"/var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.3HzHm1/state/inbox/1792585307-HrmH3y.note","attachments":["/srv/logs/build.log","/srv/logs/deploy.log"]}
+[exit 0]
+=== S3 replay with different attach returns recorded attachments
+
+$ fm-inbox.sh note --request-id req-42 --attach /other/path --json different\ text 
+{"schema":"fm-inbox-note.v1","outcome":"replay","id":"1792585307-HrmH3y","request_id":"req-42","saved":true,"announced":true,"acknowledged":false,"path":"/var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.3HzHm1/state/inbox/1792585307-HrmH3y.note","attachments":["/srv/logs/build.log","/srv/logs/deploy.log"]}
+[exit 0]
+=== S4 plain note without --attach (no attachments key)
+
+$ fm-inbox.sh note --json no\ attachments\ here 
+{"schema":"fm-inbox-note.v1","outcome":"created","id":"1792585307-v92Gi2","request_id":null,"saved":true,"announced":true,"acknowledged":false,"path":"/var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.3HzHm1/state/inbox/1792585307-v92Gi2.note"}
+[exit 0]
+=== S5 adversarial rejections
+
+$ fm-inbox.sh note --attach relative/path.txt rel 
+fm-inbox: attachment path must be absolute and contain no newline
+[exit 1]
+
+$ fm-inbox.sh note --attach $'/tmp/a\nb' newline 
+fm-inbox: attachment path must be absolute and contain no newline
+[exit 1]
+
+$ fm-inbox.sh note --attach $'/tmp/a\rb' cr 
+fm-inbox: attachment path must be absolute and contain no newline
+[exit 1]
+
+$ fm-inbox.sh note --attach 
+fm-inbox: usage: fm-inbox.sh note [--request-id <id>] [--attach <absolute-path>]... [--json] [--] <text>... (or: note -)
+[exit 1]
+
+$ fm-inbox.sh note --attach '' empty 
+fm-inbox: attachment path must be absolute and contain no newline
+[exit 1]
+=== S6 non-newline separator path stays one attachment
+
+$ fm-inbox.sh note --attach $'/tmp/a\034b' --json sep 
+{"schema":"fm-inbox-note.v1","outcome":"created","id":"1792585307-Sak9Oo","request_id":null,"saved":true,"announced":true,"acknowledged":false,"path":"/var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.3HzHm1/state/inbox/1792585307-Sak9Oo.note","attachments":["/tmp/a\u001cb"]}
+[exit 0]
+=== note records on disk
+--- /var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.3HzHm1/state/inbox/1792585307-HrmH3y.note
+id=1792585307-HrmH3y
+at=2026-10-21T12:21:47Z
+source=text
+announce_marker=1
+request_id=req-42
+attach=/srv/logs/build.log
+attach=/srv/logs/deploy.log
+--
+build failed, see logs
+--- /var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.3HzHm1/state/inbox/1792585307-MI7RT2.note
+id=1792585307-MI7RT2
+at=2026-10-21T12:21:47Z
+source=text
+announce_marker=1
+attach=/does/not/exist/report one.pdf
+attach=/var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.3HzHm1/secret-attachment.txt
+--
+please look at the attached report
+--- /var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.3HzHm1/state/inbox/1792585307-Sak9Oo.note
+id=1792585307-Sak9Oo
+at=2026-10-21T12:21:47Z
+source=text
+announce_marker=1
+attach=/tmp/a^\b
+--
+sep
+--- /var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.3HzHm1/state/inbox/1792585307-v92Gi2.note
+id=1792585307-v92Gi2
+at=2026-10-21T12:21:47Z
+source=text
+announce_marker=1
+--
+no attachments here
+=== S7 receipts --all-pending
+
+$ fm-inbox.sh receipts --all-pending 
+1792585307-v92Gi2 <none>
+1792585307-Sak9Oo ['/tmp/a\x1cb']
+1792585307-MI7RT2 ['/does/not/exist/report one.pdf', '/var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.3HzHm1/secret-attachment.txt']
+1792585307-HrmH3y ['/srv/logs/build.log', '/srv/logs/deploy.log']
+[exit 0]
+=== S8 announce --json on attached note
+
+$ fm-inbox.sh announce --json 1792585307-HrmH3y 
+{"schema":"fm-inbox-note.v1","outcome":"replay","id":"1792585307-HrmH3y","request_id":null,"saved":true,"announced":true,"acknowledged":false,"path":"/var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.3HzHm1/state/inbox/1792585307-HrmH3y.note","attachments":["/srv/logs/build.log","/srv/logs/deploy.log"]}
+[exit 0]
+=== S9 list (firstmate's view)
+
+$ fm-inbox.sh list 
+1792585307-HrmH3y
+  attachment /srv/logs/build.log
+  attachment /srv/logs/deploy.log
+    build failed, see logs
+1792585307-MI7RT2
+  attachment /does/not/exist/report one.pdf
+  attachment /var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.3HzHm1/secret-attachment.txt
+    please look at the attached report
+1792585307-Sak9Oo
+  attachment /tmp/ab
+    sep
+1792585307-v92Gi2
+    no attachments here
+[exit 0]
+=== S10 drain
+
+$ fm-inbox.sh drain 
+1792585307-HrmH3y
+  attachment /srv/logs/build.log
+  attachment /srv/logs/deploy.log
+    build failed, see logs
+1792585307-MI7RT2
+  attachment /does/not/exist/report one.pdf
+  attachment /var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.3HzHm1/secret-attachment.txt
+    please look at the attached report
+1792585307-Sak9Oo
+  attachment /tmp/ab
+    sep
+1792585307-v92Gi2
+    no attachments here
+
+Ack with: fm-inbox.sh drain --ack <id>...
+[exit 0]
+=== S11 receipts --all-handled after drain
+
+$ fm-inbox.sh receipts --all-handled 
+[exit 0]
+=== S12 secret content never copied anywhere in state/data
+(secret content not found in state/ or data/)
