@@ -1,0 +1,14 @@
+# notes: 1792580921-4kl1gh (older), 1792580926-QeBhGp (newer, 4s later)
+$ fm-inbox.sh ready
+oldest_pending_note_age_seconds = 6
+$ fm-inbox.sh drain --ack 1792580921-4kl1gh
+acked 1792580921-4kl1gh
+$ fm-inbox.sh ready   # oldest is now the newer note
+oldest_pending_note_age_seconds = 1
+$ fm-inbox.sh drain --ack 1792580926-QeBhGp
+acked 1792580926-QeBhGp
+$ fm-inbox.sh ready   # nothing pending; handled/ is ignored
+oldest_pending_note_age_seconds = None
+$ ls state/inbox/handled
+1792580921-4kl1gh.note
+1792580926-QeBhGp.note

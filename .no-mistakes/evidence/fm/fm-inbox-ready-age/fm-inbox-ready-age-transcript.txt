@@ -1,0 +1,63 @@
+$ fm-inbox.sh ready   # S1 empty inbox
+{
+    "schema": "fm-primary-ready.v1",
+    "home": "T/fm-lab.8YsK8a",
+    "observed_at": "2026-10-21T11:08:12Z",
+    "oldest_pending_note_age_seconds": null,
+    "lock": {
+        "state": "free",
+        "pid": null,
+        "live_harness": false
+    },
+    "wake_consumer": {
+        "state": "unknown",
+        "reason": "supervision-model-unknown-for-home",
+        "beacon_age_seconds": null
+    },
+    "posture": {
+        "state": "present"
+    },
+    "can_receive": false
+}
+
+$ fm-inbox.sh note "first idea"
+queued 1792580892-Dg5pBL
+  first idea
+  firstmate will pick this up at its next check.
+rc=0
+$ fm-inbox.sh note "second idea"
+queued 1792580895-i0sNTL
+  second idea
+  firstmate will pick this up at its next check.
+rc=0
+
+$ ls state/inbox
+1792580892-Dg5pBL.note
+1792580895-i0sNTL.note
+
+$ fm-inbox.sh ready   # S2 two pending notes (oldest ~5s)
+{"schema": "fm-primary-ready.v1", "oldest_pending_note_age_seconds": 5}
+
+# S3 state tree hash before 3x ready: d8e223c3e62b0285e5590819c9c4a044d712283e  -
+# S3 state tree hash after  3x ready: d8e223c3e62b0285e5590819c9c4a044d712283e  -
+S3 PASS: ready mutated nothing (no wake, no drain)
+
+$ fm-inbox.sh ready   # S4 with malformed at=, missing at=, and dot-file notes added
+exit ok; oldest_pending_note_age_seconds = 5
+
+$ fm-inbox.sh drain
+1792580892-Dg5pBL
+    first idea
+1792580895-i0sNTL
+    second idea
+
+Ack with: fm-inbox.sh drain --ack <id>...
+$ fm-inbox.sh drain --ack 1792580892-Dg5pBL
+1792580895-i0sNTL
+already-acked 1792580892-Dg5pBL
+1792580895-i0sNTL
+
+$ fm-inbox.sh ready   # S5 after acknowledging all notes
+oldest_pending_note_age_seconds = 6
+
+# NOTE: the S5 block above is a harness mistake (zsh passed both ids as one arg, so nothing was acked). See fm-inbox-ready-age-ack-transcript.txt for the corrected ack scenario.
