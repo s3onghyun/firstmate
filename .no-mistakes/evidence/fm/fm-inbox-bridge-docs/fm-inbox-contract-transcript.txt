@@ -1,0 +1,21 @@
+$ echo "hello bridge" | fm-inbox.sh note --request-id req-1 --json -
+{"schema":"fm-inbox-note.v1","outcome":"created","id":"1792580905-scCpXl","request_id":"req-1","saved":true,"announced":true,"acknowledged":false,"path":"/var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.IWvwEi/state/inbox/1792580905-scCpXl.note"}
+exit=0
+$ (retry) fm-inbox.sh note --request-id req-1 --json -
+{"schema":"fm-inbox-note.v1","outcome":"replay","id":"1792580905-scCpXl","request_id":"req-1","saved":true,"announced":true,"acknowledged":false,"path":"/var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.IWvwEi/state/inbox/1792580905-scCpXl.note"}
+exit=0
+$ echo 'done' | fm-inbox.sh reply --json 1792580905-scCpXl -
+{"schema":"fm-inbox-reply.v1","outcome":"created","id":"1792580905-scCpXl","path":"/var/folders/5g/9lqv9byx1kb4x3vtvf0_cd240000gn/T//fm-lab.IWvwEi/state/inbox/.replies/1792580905-scCpXl"}
+exit=0
+$ fm-inbox.sh receipts
+{"schema":"fm-inbox-receipts.v1","home":"T/fm-lab.IWvwEi","generated":"2026-10-21T11:08:25Z","pending":[{"id":"1792580905-scCpXl","at":"2026-10-21T11:08:25Z","source":"text","request_id":"req-1","body":"hello bridge","acknowledged":false,"announced":true,"reply":{"id":"1792580905-scCpXl","at":"2026-10-21T11:08:25Z","body":"done","cursor":"000000000001"}}],"handled":[],"replies":[{"id":"1792580905-scCpXl","at":"2026-10-21T11:08:25Z","body":"done","cursor":"000000000001"}],"reply_cursor":"000000000001","omitted":[]}
+exit=0
+$ fm-inbox.sh ready
+{"schema":"fm-primary-ready.v1","home":"T/fm-lab.IWvwEi","observed_at":"2026-10-21T11:08:25Z","lock":{"state":"free","pid":null,"live_harness":false},"wake_consumer":{"state":"unknown","reason":"supervision-model-unknown-for-home","beacon_age_seconds":null},"posture":{"state":"present"},"can_receive":false}
+exit=0
+$ fm-inbox.sh --help | head -5
+fm-inbox.sh - the captain's out-of-band capture surface.
+
+Solves three DIFFERENT problems with three different mechanisms, because they
+are not the same problem:
+

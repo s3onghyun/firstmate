@@ -1,0 +1,10 @@
+$ (adversarial) second reply to same note
+fm-inbox: reply already recorded for 1792580905-scCpXl
+exit=1
+$ (create 22 more notes, exceeding default bound 20)
+$ fm-inbox.sh receipts | omitted[] + pending count
+pending_shown 20
+[{"surface": "pending notes omitted by bound: 3", "reveal": "pass --all-pending"}]
+$ fm-inbox.sh receipts --all-pending | omitted[] + pending count
+pending_shown 23
+[]

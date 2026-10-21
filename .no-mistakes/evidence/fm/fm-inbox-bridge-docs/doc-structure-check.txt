@@ -1,0 +1,9 @@
+# heading outline around new subsection
+2173:## Process-to-event sources (state/procevent)
+2192:### Crew-hosted Lavish review boards
+2548:## Spoken interface and captain inbox (config/voice-*, config/inbox-*)
+2580:### External reader contract
+2595:## Environment variables
+
+# bridge/captain-specific names in new subsection
+none
